@@ -1,4 +1,10 @@
 #!/bin/bash
+MemoryTotal=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+Memoryset=$(( ( $MemoryTotal / 2 ) / 1024 ))
+memory="${Memoryset}M"
+core=$(nproc --all)
+corehalve=$(( $core / 2 ))
+
 
 image=sys.img
 if [ ! -f $image ] ; then
@@ -24,9 +30,9 @@ MY_OPTIONS="+pcid,+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check"
 # OVMF=./firmware
 OVMF="./"
 
-qemu-system-x86_64 -enable-kvm -m 4096 -cpu Penryn,kvm=on,vendor=GenuineIntel,+invtsc,vmware-cpuid-freq=on,$MY_OPTIONS\
+qemu-system-x86_64 -enable-kvm -m ${Memoryset} -cpu Penryn,kvm=on,vendor=GenuineIntel,+invtsc,vmware-cpuid-freq=on,$MY_OPTIONS\
 	  -machine q35 \
-	  -smp 16,cores=8 \
+	  -smp ${core},cores=${corehalves} \
 	  -cdrom win10.iso \
 	  -usb -device usb-kbd -device usb-tablet \
 	  -drive if=pflash,format=raw,readonly,file=$OVMF/OVMF_CODE.fd \
